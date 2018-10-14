@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">DemoRoom</string>
+    <string name="action_settings">Settings</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="save">Save</string>
+    <string name="phone">Phone</string>
+    <string name="empty_input">Invalid Input</string>
+</resources>
