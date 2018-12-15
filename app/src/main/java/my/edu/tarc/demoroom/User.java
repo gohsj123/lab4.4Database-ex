@@ -1,5 +1,10 @@
 package my.edu.tarc.demoroom;
 
+
+//TODO 3: Create an Entity class to present a record
+
+
+import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
@@ -10,23 +15,18 @@ public class User {
     @NonNull
     private String phone;
 
+    @ColumnInfo(name = "first_name")
     private String firstName;
+
+    @ColumnInfo(name =  "last_name")
     private String lastName;
 
-    public User() {
-    }
-
-    public User(String phone, String firstName, String lastName) {
-        this.phone = phone;
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
-
+    @NonNull
     public String getPhone() {
         return phone;
     }
 
-    public void setPhone(String phone) {
+    public void setPhone(@NonNull String phone) {
         this.phone = phone;
     }
 
@@ -46,3 +46,4 @@ public class User {
         this.lastName = lastName;
     }
 }
+

@@ -1,35 +1,33 @@
 package my.edu.tarc.demoroom;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.arch.persistence.room.Room;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String DATABASE_NAME = "user_db";
     private static final int INSERT_USER_REQUEST = 1;
-    private AppDatabase userDatabase;
-
-    private List<User> mUserList;
-    private RecyclerView recyclerView;
-    private UserListAdapter userListAdapter;
+    private UserViewModel userViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -42,22 +40,23 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        createDB();
-        loadUsers();
-    }
+        RecyclerView recyclerView = findViewById(R.id.recyclerViewUser);
 
-    private void loadUsers() {
-        //Get handler to the RecyclerView
-        recyclerView = findViewById(R.id.recyclerViewUser);
-
-        mUserList = userDatabase.userDao().getAllUsers();
-
-        //Create an adapter and supply data
-        userListAdapter = new UserListAdapter(this, mUserList);
-
-        recyclerView.setAdapter(userListAdapter);
-
+        //Link data adapter to the UI
+        final UserAdapter userAdapter = new UserAdapter(this);
+        recyclerView.setAdapter(userAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        //Connect UI to database
+        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        userViewModel.getAllUsers().observe(this, new Observer<List<User>>() {
+            @Override
+            public void onChanged(@Nullable List<User> users) {
+                //Update cahced copy of the user in the adapter.
+                userAdapter.setUsers(users);
+            }
+        });
+
     }
 
     @Override
@@ -82,32 +81,19 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void createDB(){
-        userDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, DATABASE_NAME)
-                .fallbackToDestructiveMigration()
-                .build();
-    }
-
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if(requestCode == INSERT_USER_REQUEST && resultCode == RESULT_OK && data != null){
-            User user = new User(data.getStringExtra(InsertActivity.INSERT_PHONE),
-                    data.getStringExtra(InsertActivity.INSERT_FIRST),
-                    data.getStringExtra(InsertActivity.INSERT_LAST));
-            addUser(user);
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if(requestCode == INSERT_USER_REQUEST && resultCode == RESULT_OK){
+            User user = new User();
+            user.setFirstName(data.getStringExtra(InsertActivity.INSERT_FIRST));
+            user.setLastName(data.getStringExtra(InsertActivity.INSERT_LAST));
+            user.setPhone(data.getStringExtra(InsertActivity.INSERT_PHONE));
+            userViewModel.insertUser(user);
         }else{
-            Toast.makeText(getApplicationContext(), R.string.empty_input, Toast.LENGTH_LONG).show();
+            Toast.makeText(
+                    getApplicationContext(),
+                    R.string.empty_not_saved,
+                    Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void addUser(final User user) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                userDatabase.userDao().insertUser(user);
-            }
-        }).start();
     }
 }

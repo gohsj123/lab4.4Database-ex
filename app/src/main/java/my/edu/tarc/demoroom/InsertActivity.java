@@ -43,6 +43,7 @@ public class InsertActivity extends AppCompatActivity {
                 phone = editTextPhone.getText().toString();
                 firstName = editTextFirstName.getText().toString();
                 lastName = editTextLastName.getText().toString();
+
                 Intent intent = new Intent();
                 intent.putExtra(INSERT_PHONE, phone);
                 intent.putExtra(INSERT_FIRST, firstName);
@@ -51,5 +52,12 @@ public class InsertActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent();
+        setResult(RESULT_CANCELED, intent);
     }
 }
